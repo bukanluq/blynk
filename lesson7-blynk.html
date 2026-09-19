@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lesson 7 — Talking to the Cloud</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10161d;
+    --bg-elev:#171f28;
+    --bg-code:#0b0f14;
+    --line:#26313c;
+    --text:#e7ecf1;
+    --text-dim:#8b98a5;
+    --accent:#ffb454;
+    --accent-2:#57c7b8;
+    --accent-warn:#ff8a80;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);}
+  body{
+    font-family:var(--sans);
+    color:var(--text);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .deck{
+    position:relative;
+    flex:1;
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    padding:clamp(14px,2.4vw,36px) clamp(24px,6vw,96px);
+    overflow:hidden;
+  }
+  .slide.active{display:flex;}
+  .slide-inner{max-width:920px; width:100%; margin:0 auto; flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:.02em;
+    color:var(--accent-2);
+    margin:0 0 14px 0;
+  }
+  h1{
+    font-size:clamp(30px,4.4vw,52px);
+    line-height:1.08;
+    margin:0 0 18px 0;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  h2{
+    font-size:clamp(20px,2.8vw,32px);
+    line-height:1.12;
+    margin:0 0 10px 0;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  p.lede{
+    font-size:clamp(14px,1.5vw,17px);
+    line-height:1.5;
+    color:var(--text-dim);
+    max-width:70ch;
+    margin:0 0 12px 0;
+  }
+  .grid{
+    display:grid;
+    gap:16px;
+  }
+  .grid.cols-2{grid-template-columns:1fr 1fr;}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:760px){ .grid.cols-2, .grid.cols-3{grid-template-columns:1fr;} }
+  .card{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .card h3{
+    margin:0 0 8px 0;
+    font-size:15px;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .card p{margin:0; font-size:14.5px; line-height:1.55; color:var(--text-dim);}
+  .term{
+    border-left:3px solid var(--accent-2);
+    padding:4px 0 4px 16px;
+    margin:0 0 16px 0;
+  }
+  .term b{color:var(--text); font-size:16.5px;}
+  .term span{display:block; color:var(--text-dim); font-size:14.5px; margin-top:3px; line-height:1.5;}
+  ul.points{margin:0 0 20px 0; padding:0; list-style:none;}
+  ul.points li{
+    position:relative;
+    padding-left:22px;
+    margin-bottom:10px;
+    font-size:15.5px;
+    line-height:1.55;
+    color:var(--text);
+  }
+  ul.points li::before{
+    content:"";
+    position:absolute;
+    left:0; top:8px;
+    width:7px; height:7px;
+    background:var(--accent);
+    border-radius:1.5px;
+  }
+  .steps{counter-reset:step; margin:0 0 10px 0; padding:0; list-style:none;}
+  .steps li{
+    counter-increment:step;
+    position:relative;
+    padding-left:40px;
+    margin-bottom:14px;
+    font-size:15.5px;
+    line-height:1.55;
+  }
+  .steps li::before{
+    content:counter(step);
+    position:absolute; left:0; top:0;
+    width:26px; height:26px;
+    border:1px solid var(--accent);
+    color:var(--accent);
+    border-radius:50%;
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .steps li b{color:var(--text);}
+  .steps li span.why{display:block; color:var(--text-dim); margin-top:2px;}
+  pre{
+    background:var(--bg-code);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 16px;
+    overflow-x:auto;
+    overflow-y:visible;
+    margin:0 0 14px 0;
+  }
+  code{
+    font-family:var(--mono);
+    font-size:clamp(9.5px,1.15vw,12.5px);
+    line-height:1.42;
+    color:#d3dce3;
+    white-space:pre;
+  }
+  .code-slide .slide-inner{justify-content:flex-start;}
+  .code-slide h2{margin-bottom:8px;}
+  .code-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    flex:1;
+    min-height:0;
+  }
+  .code-col{display:flex; flex-direction:column; min-height:0;}
+  .code-col-label{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+    margin-bottom:6px;
+    letter-spacing:.02em;
+  }
+  .code-col pre{
+    flex:1;
+    min-height:0;
+    margin:0;
+    background:var(--bg-code);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    overflow-x:auto;
+    display:flex;
+    align-items:stretch;
+  }
+  .code-col code{
+    width:100%;
+    font-family:var(--mono);
+    color:#d3dce3;
+    white-space:pre;
+    font-size:clamp(10px,min(2.9vh,1.35vw),16px);
+    line-height:1.5;
+  }
+  .badge{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:20px;
+    border:1px solid var(--accent);
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  .result, .note, .todo{
+    border-radius:10px;
+    padding:9px 14px;
+    margin:0 0 8px 0;
+    font-size:13px;
+    line-height:1.45;
+  }
+  .result{background:rgba(87,199,184,0.08); border:1px solid rgba(87,199,184,0.35);}
+  .result b{color:var(--accent-2);}
+  .todo{background:rgba(255,180,84,0.08); border:1px solid rgba(255,180,84,0.35);}
+  .todo b{color:var(--accent);}
+  .note{background:rgba(255,255,255,0.03); border:1px dashed var(--line); color:var(--text-dim);}
+  .note b{color:var(--text);}
+  table{width:100%; border-collapse:collapse; margin:0 0 18px 0; font-size:14.5px;}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line);}
+  th{font-family:var(--mono); font-size:12px; color:var(--text-dim); font-weight:500; letter-spacing:.02em;}
+  td{color:var(--text);}
+  .two-col{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:start;}
+  @media (max-width:800px){ .two-col{grid-template-columns:1fr;} }
+  .pins{font-family:var(--mono); color:var(--accent-2);}
+  .diagram{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    flex-wrap:wrap;
+    margin:8px 0 22px 0;
+  }
+  .node{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 18px;
+    text-align:center;
+    min-width:120px;
+  }
+  .node b{display:block; font-size:14px; margin-bottom:2px;}
+  .node span{font-size:12px; color:var(--text-dim);}
+  .arrow{color:var(--text-dim); font-family:var(--mono); font-size:20px;}
+  .wire-svg{width:100%; max-width:640px; margin:6px auto 20px auto; display:block;}
+  .title-slide .slide-inner{justify-content:center; align-items:flex-start;}
+  .title-slide h1{font-size:clamp(38px,6vw,68px);}
+  .kicker{font-family:var(--mono); color:var(--accent); font-size:14px; margin-bottom:22px;}
+  .footer-bar{
+    border-top:1px solid var(--line);
+    background:var(--bg-elev);
+    padding:10px clamp(20px,5vw,64px);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .progress{display:flex; gap:5px; flex:1; max-width:420px;}
+  .tick{height:4px; flex:1; background:var(--line); border-radius:2px; transition:background .2s;}
+  .tick.done{background:var(--accent-2);}
+  .tick.current{background:var(--accent);}
+  .nav-controls{display:flex; align-items:center; gap:14px;}
+  .counter{font-family:var(--mono); font-size:13px; color:var(--text-dim); min-width:52px; text-align:center;}
+  button.nav-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text);
+    width:36px; height:36px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  button.nav-btn:hover{border-color:var(--accent); color:var(--accent);}
+  button.nav-btn:disabled{opacity:.3; cursor:default;}
+  button.nav-btn:disabled:hover{border-color:var(--line); color:var(--text);}
+  .slide-label{font-family:var(--mono); font-size:12px; color:var(--text-dim);}
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- 0 -->
+  <section class="slide active title-slide">
+    <div class="slide-inner">
+      <div class="kicker">ESP32 · LESSON 7</div>
+      <h1>Talking to the Cloud: ESP32 + Blynk</h1>
+      <p class="lede">Your ESP32 has been talking to the Serial Monitor and a local web page. Today it learns to talk to a phone from anywhere in the world — through a service called Blynk.</p>
+      <div class="note"><b>Before this lesson:</b> students should be comfortable uploading a sketch, reading <code style="font-size:13px;">Serial.print()</code> output, and using <code style="font-size:13px;">pinMode()</code> / <code style="font-size:13px;">digitalWrite()</code> / <code style="font-size:13px;">analogRead()</code>.</div>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Part 1 · Concepts</div>
+      <h2>What is Blynk, actually?</h2>
+      <p class="lede">Blynk is a service that sits between your ESP32 and your phone. It gives you a mobile app and a website with drag-and-drop buttons, sliders, and gauges — so you don't have to build your own app to control your project.</p>
+      <ul class="points">
+        <li>Your ESP32 connects to the internet over Wi-Fi and reports in to Blynk's servers.</li>
+        <li>You build a control screen (a "dashboard") by dragging widgets onto it — no app-building required.</li>
+        <li>Tapping a button on your phone reaches your ESP32 in under a second, from anywhere with internet.</li>
+      </ul>
+      <div class="note"><b>Why it matters:</b> without a service like Blynk, "control my project from my phone" means writing a server, an app, and a way through your router's firewall. Blynk already built all of that.</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Part 1 · Concepts</div>
+      <h2>How the pieces talk to each other</h2>
+      <p class="lede">Nothing connects directly to your phone. Everything passes through Blynk's cloud servers in the middle.</p>
+      <div class="diagram">
+        <div class="node"><b>ESP32</b><span>your hardware</span></div>
+        <div class="arrow">⇄</div>
+        <div class="node"><b>Blynk Cloud</b><span>the middleman</span></div>
+        <div class="arrow">⇄</div>
+        <div class="node"><b>Phone / Web App</b><span>your dashboard</span></div>
+      </div>
+      <ul class="points">
+        <li>The ESP32 opens a connection to Blynk's servers and keeps it open — that's what <code style="font-size:13px;">Blynk.run()</code> maintains.</li>
+        <li>When you tap a widget in the app, Blynk forwards that command to your ESP32 over the open connection.</li>
+        <li>When your ESP32 has new data, it pushes it to Blynk, and every open dashboard updates instantly.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Part 1 · Concepts</div>
+      <h2>Five words you'll keep hearing</h2>
+      <div class="term"><b>Template</b><span>The blueprint for your project type. It defines what data the device sends and receives. You build one Template, then create Devices from it.</span></div>
+      <div class="term"><b>Device</b><span>One physical ESP32, linked to a Template. Each Device gets its own Auth Token to identify it to the cloud.</span></div>
+      <div class="term"><b>Datastream</b><span>One channel of data — like a labeled wire between your code and the dashboard. Each Datastream lives on a Virtual Pin.</span></div>
+      <div class="term"><b>Virtual Pin</b><span>Not a real pin on the board — a numbered slot (V0, V1, V2…) that carries one Datastream's value between your sketch and the app.</span></div>
+      <div class="term"><b>Dashboard</b><span>The screen of widgets — buttons, sliders, gauges — that you drag and drop, each one wired to a Virtual Pin.</span></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Setup 1 of 5</span>
+      <h2>Create your Blynk account</h2>
+      <ol class="steps">
+        <li><b>Go to blynk.io and choose to start free.</b><span class="why">No credit card needed for the free tier — it covers everything in this lesson.</span></li>
+        <li><b>Sign up with your email and verify it.</b><span class="why">Blynk will send a confirmation link — click it before continuing, or your dashboard won't unlock.</span></li>
+        <li><b>Skip or close the guided tour.</b><span class="why">You'll set up the Template and Device yourself in the next steps, so there's no need to follow the wizard.</span></li>
+      </ol>
+      <div class="todo"><b>Do this now:</b> get your account created and verified before moving to the next slide — everything else depends on it.</div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Setup 2 of 5</span>
+      <h2>Create a Template</h2>
+      <p class="lede">A Template is the blueprint. You only make one per project — every ESP32 running this lesson's code can be a Device under the same Template.</p>
+      <ol class="steps">
+        <li><b>Open the Templates page and create a new one.</b></li>
+        <li><b>Name it something recognizable, like "E21 Blynk."</b><span class="why">This name is only for you — it never appears in your code.</span></li>
+        <li><b>Set the hardware to ESP32.</b><span class="why">This tells Blynk which connection type and code examples to show you.</span></li>
+        <li><b>Save the Template.</b><span class="why">You'll be dropped into the Template's Info page — leave it open, you'll add Datastreams next.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Setup 3 of 5</span>
+      <h2>Configure the Datastreams</h2>
+      <p class="lede">Inside your Template, open the Datastreams tab and create three — one per Virtual Pin this lesson uses.</p>
+      <table>
+        <tr><th>Pin</th><th>Name</th><th>Type</th><th>Direction</th><th>Range</th></tr>
+        <tr><td class="pins">V0</td><td>LED Control</td><td>Integer</td><td>App → Device</td><td>0 / 1</td></tr>
+        <tr><td class="pins">V1</td><td>Uptime</td><td>Integer</td><td>Device → App</td><td>0 – 100000</td></tr>
+        <tr><td class="pins">V2</td><td>Light Level</td><td>Integer</td><td>Device → App</td><td>0 – 4095</td></tr>
+      </table>
+      <div class="note"><b>Required setting:</b> for V0, set Min 0 / Max 1 — that's what makes it behave like an on/off switch instead of a free number.</div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Setup 4 of 5</span>
+      <h2>Build the Dashboard</h2>
+      <p class="lede">Switch to the Web Dashboard (or Mobile Dashboard) tab and drag on three widgets — each one gets wired to a Datastream you just created.</p>
+      <div class="grid cols-3">
+        <div class="card"><h3>Button</h3><p>Drag it on, open its settings, and attach it to Datastream <span class="pins">V0</span>. This is your on/off switch for the LED.</p></div>
+        <div class="card"><h3>Value Display</h3><p>Attach it to <span class="pins">V1</span>. It will show how many seconds the ESP32 has been running.</p></div>
+        <div class="card"><h3>Gauge</h3><p>Attach it to <span class="pins">V2</span>. It will show the live sensor reading as a dial.</p></div>
+      </div>
+      <div class="note">Widgets only show what a Datastream carries — get the Datastream range right in the previous step and the widget behaves correctly automatically.</div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Setup 5 of 5</span>
+      <h2>Create the Device and grab your credentials</h2>
+      <ol class="steps">
+        <li><b>Go to the Devices page and create a new one "from Template."</b><span class="why">This links a specific ESP32 to the blueprint you built.</span></li>
+        <li><b>Pick your Template and give the Device a name.</b><span class="why">The name is just for your own reference in the Blynk console.</span></li>
+        <li><b>Open the Device and copy three values: Template ID, Template Name, and Auth Token.</b><span class="why">These three values are what your sketch uses to prove it's <em>this</em> device — never share the Auth Token publicly.</span></li>
+      </ol>
+      <div class="result"><b>You should now have:</b> a Template ID, a Template Name, and an Auth Token — you'll paste all three into your code on the next slides.</div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Part 2 · Arduino IDE Setup</div>
+      <h2>Board and libraries</h2>
+      <div class="two-col">
+        <div>
+          <h3 style="color:var(--accent); font-size:15px; margin:0 0 10px 0;">Board</h3>
+          <p style="color:var(--text-dim); font-size:14.5px; line-height:1.55; margin:0 0 20px 0;">Tools → Board → pick your ESP32 Dev Module. If it's not listed, install the "esp32" board package from Boards Manager first.</p>
+          <h3 style="color:var(--accent); font-size:15px; margin:0 0 10px 0;">Libraries to install</h3>
+        </div>
+        <div class="card">
+          <h3>Library Manager</h3>
+          <p>Sketch → Include Library → Manage Libraries, then search and install:</p>
+        </div>
+      </div>
+      <ul class="points">
+        <li>Search <b>"Blynk"</b> and install the library published by <b>Volodymyr Shymanskyy</b> — this gives you <code style="font-size:13px;">BlynkSimpleEsp32.h</code>.</li>
+        <li>The ESP32's built-in <code style="font-size:13px;">WiFi.h</code> is already available once you've installed the ESP32 board package — no separate install needed.</li>
+      </ul>
+      <div class="note"><b>Required Wi-Fi and Blynk values for your code:</b> your Wi-Fi network name (SSID) and password, plus the Template ID, Template Name, and Auth Token from the previous slide.</div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Part 2 · Arduino IDE Setup</div>
+      <h2>Wiring</h2>
+      <p class="lede">Two components this lesson: an LED the app will control, and a light sensor (or potentiometer) the app will read from.</p>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>LED — output, pin 15</h3>
+          <p>LED anode through a 220Ω resistor to GPIO15. LED cathode to GND.</p>
+        </div>
+        <div class="card">
+          <h3>Sensor — input, pin 34</h3>
+          <p>LDR (or potentiometer wiper) forms a voltage divider into GPIO34. GPIO34 is input-only and analog-capable — a good fit for <code style="font-size:13px;">analogRead()</code>.</p>
+        </div>
+      </div>
+      <div class="note">No sensor on hand? A potentiometer wired the same way works identically for this lesson — turning it stands in for changing light.</div>
+    </div>
+  </section>
+
+  <!-- 11 : PHASE 1 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 1 of 5 — Code</span>
+      <h2>Connect to the cloud</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
+}
+
+void loop() {
+  Blynk.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11b : PHASE 1 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 1 of 5</span>
+      <h2>Connect to the cloud</h2>
+      <p class="lede">Before adding any widgets or sensors, prove the ESP32 can reach Blynk at all.</p>
+      <div class="note"><b>What's new:</b> the three <code style="font-size:13px;">#define</code> lines identify your Template and Device to the cloud. <code style="font-size:13px;">Blynk.begin()</code> connects to Wi-Fi and then to Blynk in one call. <code style="font-size:13px;">Blynk.run()</code> must be called every loop to keep that connection alive.</div>
+      <div class="result"><b>Expected result:</b> the Serial Monitor shows the Blynk logo and a message that the connection succeeded. Nothing happens on the dashboard yet — there's nothing sending or receiving data.</div>
+      <div class="todo"><b>Students:</b> replace the auth token, SSID, and password with your own, upload, and confirm the Serial Monitor shows a successful connection before continuing.</div>
+    </div>
+  </section>
+
+  <!-- 12 : PHASE 2 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 2 of 5 — Code</span>
+      <h2>Read a sensor</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials & pins</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+const int sensorPin = 34;</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
+}
+
+void loop() {
+  Blynk.run();
+  int sensorValue = analogRead(sensorPin);
+  Serial.print("Sensor reading: ");
+  Serial.println(sensorValue);
+  delay(500);
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12b : PHASE 2 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 2 of 5</span>
+      <h2>Read a sensor</h2>
+      <p class="lede">Add the sensor reading on its own first, printed to Serial only — get the reading right before sending it anywhere.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">sensorPin</code> names GPIO34. <code style="font-size:13px;">analogRead()</code> returns a number from 0 (no light / one end of the potentiometer) to 4095 (bright light / the other end).</div>
+      <div class="result"><b>Expected result:</b> the Serial Monitor prints a new sensor reading twice a second. Covering the LDR — or turning the potentiometer — changes the number.</div>
+      <div class="note"><b>Teacher note:</b> the short <code style="font-size:13px;">delay(500)</code> here is fine for now, but flag it — Phase 3 replaces it with a timer so <code style="font-size:13px;">Blynk.run()</code> is never kept waiting.</div>
+    </div>
+  </section>
+
+  <!-- 13 : PHASE 3 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 3 of 5 — Code</span>
+      <h2>Send sensor data to Blynk</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials, pins & functions</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+const int sensorPin = 34;
+BlynkTimer timer;
+
+void sendSensorData() {
+  int sensorValue = analogRead(sensorPin);
+  Blynk.virtualWrite(V2, sensorValue);
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, sendSensorData);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13b : PHASE 3 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 3 of 5</span>
+      <h2>Send sensor data to Blynk</h2>
+      <p class="lede">Now push that reading up to the Gauge on V2 — on a timer, instead of a blocking delay.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">BlynkTimer timer</code> schedules a function to run repeatedly without blocking. <code style="font-size:13px;">timer.setInterval(1000L, sendSensorData)</code> calls <code style="font-size:13px;">sendSensorData()</code> every 1000ms. <code style="font-size:13px;">Blynk.virtualWrite(V2, sensorValue)</code> pushes the number to Virtual Pin V2 — that's the wire straight to your Gauge widget. <code style="font-size:13px;">timer.run()</code> in the loop is what actually checks and fires the timer.</div>
+      <div class="result"><b>Expected result:</b> the Gauge widget on your dashboard updates once a second and tracks the sensor in real time — from anywhere with internet, not just on your desk.</div>
+    </div>
+  </section>
+
+  <!-- 14 : PHASE 4 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 4 of 5 — Code</span>
+      <h2>Control the LED from Blynk</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials, pins & functions</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+const int sensorPin = 34;
+const int ledPin = 15;
+BlynkTimer timer;
+
+BLYNK_WRITE(V0) {
+  int pinValue = param.asInt();
+  digitalWrite(ledPin, pinValue);
+}
+
+void sendSensorData() {
+  int sensorValue = analogRead(sensorPin);
+  Blynk.virtualWrite(V2, sensorValue);
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, sendSensorData);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14b : PHASE 4 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Phase 4 of 5</span>
+      <h2>Control the LED from Blynk</h2>
+      <p class="lede">Add the LED and let the app's Button widget switch it — this is the first time data flows from the app back down to the ESP32.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">BLYNK_WRITE(V0)</code> is a special function that Blynk calls automatically whenever the Button on V0 is tapped — you never call it yourself. <code style="font-size:13px;">param.asInt()</code> reads what the app sent (0 or 1), and <code style="font-size:13px;">digitalWrite(ledPin, pinValue)</code> applies it to the real LED.</div>
+      <div class="result"><b>Expected result:</b> tapping the Button widget turns the physical LED on and off, with the Gauge still updating in the background.</div>
+    </div>
+  </section>
+
+  <!-- 15 : FINAL PHASE CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Final Phase · 5 of 5 — Code</span>
+      <h2>The complete dashboard</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials, pins & functions</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+const int sensorPin = 34;
+const int ledPin = 15;
+BlynkTimer timer;
+
+BLYNK_WRITE(V0) {
+  int pinValue = param.asInt();
+  digitalWrite(ledPin, pinValue);
+}
+
+void sendUptime() {
+  Blynk.virtualWrite(V1, millis() / 1000);
+}
+
+void sendSensorData() {
+  int sensorValue = analogRead(sensorPin);
+  Blynk.virtualWrite(V2, sensorValue);
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, sendUptime);
+  timer.setInterval(1000L, sendSensorData);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15b : FINAL PHASE DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Final Phase · 5 of 5</span>
+      <h2>The complete dashboard</h2>
+      <p class="lede">Add the uptime counter on V1 and every piece from Phases 1–4 is now working together: one control, two live readouts.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">sendUptime()</code> writes <code style="font-size:13px;">millis() / 1000</code> — milliseconds since boot, converted to seconds — to V1. It's scheduled on the same timer object as the sensor function, so both run every second without interfering with each other.</div>
+      <div class="result"><b>Expected result:</b> your dashboard shows a live sensor Gauge, a running Uptime counter, and a Button that switches the LED — all working over the internet, not a local network.</div>
+    </div>
+  </section>
+
+  <!-- 16 : CHALLENGE -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Challenge</div>
+      <h2>Push the dashboard further</h2>
+      <p class="lede">Pick one or more. Build on top of the final phase's code — don't start over.</p>
+      <div class="grid cols-3">
+        <div class="card"><h3>Second output</h3><p>Wire a second LED to GPIO2, create a Datastream on V3, and add a second Button widget for it.</p></div>
+        <div class="card"><h3>Automation alert</h3><p>In the Blynk console, set up an Automation that sends a notification when the V2 reading drops below a threshold you choose.</p></div>
+        <div class="card"><h3>Brightness slider</h3><p>Replace the on/off Button with a Slider on V0, and use <code style="font-size:13px;">analogWrite()</code> to fade the LED's brightness instead of switching it.</p></div>
+      </div>
+      <div class="note">Working with a different sensor this semester instead of an LDR or potentiometer? Swap <code style="font-size:13px;">sensorPin</code> and the reading logic — everything else in the sketch stays the same.</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer-bar">
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="go(-1)" aria-label="Previous slide">‹</button>
+    <span class="counter"><span id="curNum">1</span> / <span id="totalNum"></span></span>
+    <button class="nav-btn" id="nextBtn" onclick="go(1)" aria-label="Next slide">›</button>
+  </div>
+  <div class="progress" id="progress"></div>
+  <div class="slide-label" id="slideLabel"></div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  const progressEl = document.getElementById('progress');
+  slides.forEach((_, i) => {
+    const t = document.createElement('div');
+    t.className = 'tick';
+    progressEl.appendChild(t);
+  });
+  const ticks = Array.from(progressEl.children);
+
+  document.getElementById('totalNum').textContent = total;
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('curNum').textContent = idx + 1;
+    ticks.forEach((t, i) => {
+      t.classList.toggle('current', i === idx);
+      t.classList.toggle('done', i < idx);
+    });
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === total - 1;
+    const h = slides[idx].querySelector('h1, h2');
+    document.getElementById('slideLabel').textContent = h ? h.textContent : '';
+    slides[idx].scrollTop = 0;
+  }
+
+  function go(delta){
+    const next = idx + delta;
+    if(next < 0 || next >= total) return;
+    idx = next;
+    render();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowRight' || e.key === ' ') { go(1); }
+    if(e.key === 'ArrowLeft') { go(-1); }
+  });
+
+  render();
+</script>
+
+</body>
+</html>
