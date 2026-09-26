@@ -453,61 +453,28 @@
     </div>
   </section>
 
-  <!-- 11 : PHASE 1 CODE -->
-  <section class="slide code-slide">
-    <div class="slide-inner">
-      <span class="badge">Phase 1 of 5 — Code</span>
-      <h2>Connect to the cloud</h2>
-      <div class="code-grid">
-        <div class="code-col">
-          <div class="code-col-label">Credentials</div>
-          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
-#define BLYNK_TEMPLATE_NAME "E21 Blynk"
-#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
-
-#include &lt;WiFi.h&gt;
-#include &lt;WiFiClient.h&gt;
-#include &lt;BlynkSimpleEsp32.h&gt;
-
-char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "YourWiFiName";
-char pass[] = "YourWiFiPassword";</code></pre>
-        </div>
-        <div class="code-col">
-          <div class="code-col-label">setup() and loop()</div>
-          <pre><code>void setup() {
-  Serial.begin(115200);
-  Blynk.begin(auth, ssid, pass);
-}
-
-void loop() {
-  Blynk.run();
-}</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 11b : PHASE 1 DETAIL -->
+  <!-- 11 : RECAP -->
   <section class="slide">
     <div class="slide-inner">
-      <span class="badge">Phase 1 of 5</span>
-      <h2>Connect to the cloud</h2>
-      <p class="lede">Before adding any widgets or sensors, prove the ESP32 can reach Blynk at all.</p>
-      <div class="note"><b>What's new:</b> the three <code style="font-size:13px;">#define</code> lines identify your Template and Device to the cloud. <code style="font-size:13px;">Blynk.begin()</code> connects to Wi-Fi and then to Blynk in one call. <code style="font-size:13px;">Blynk.run()</code> must be called every loop to keep that connection alive.</div>
-      <div class="result"><b>Expected result:</b> the Serial Monitor shows the Blynk logo and a message that the connection succeeded. Nothing happens on the dashboard yet — there's nothing sending or receiving data.</div>
-      <div class="todo"><b>Students:</b> replace the auth token, SSID, and password with your own, upload, and confirm the Serial Monitor shows a successful connection before continuing.</div>
+      <div class="eyebrow">Quick recap</div>
+      <h2>Last week: LED + Button</h2>
+      <p class="lede">You already got the ESP32 talking to Blynk and used the app's Button widget to switch the physical LED. Today builds straight on that same sketch and dashboard — no new setup needed.</p>
+      <ul class="points">
+        <li><code style="font-size:13px;">Blynk.begin(auth, ssid, pass)</code> connects to Wi-Fi and Blynk.</li>
+        <li><code style="font-size:13px;">BLYNK_WRITE(V0)</code> fires automatically when the Button widget is tapped, and <code style="font-size:13px;">digitalWrite(ledPin, pinValue)</code> drives the LED.</li>
+      </ul>
+      <div class="note">Keep last week's sketch open — Activity 1 below adds to it, and Activities 2–4 are separate sketches that explore the sensor from a few different angles.</div>
     </div>
   </section>
 
-  <!-- 12 : PHASE 2 CODE -->
+  <!-- 12 : ACTIVITY 1 CODE -->
   <section class="slide code-slide">
     <div class="slide-inner">
-      <span class="badge">Phase 2 of 5 — Code</span>
-      <h2>Read a sensor</h2>
+      <span class="badge">Activity 1 of 4 — Code</span>
+      <h2>Read &amp; send the sensor</h2>
       <div class="code-grid">
         <div class="code-col">
-          <div class="code-col-label">Credentials & pins</div>
+          <div class="code-col-label">Credentials, pins &amp; functions</div>
           <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
 #define BLYNK_TEMPLATE_NAME "E21 Blynk"
 #define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
@@ -520,117 +487,8 @@ char auth[] = BLYNK_AUTH_TOKEN;
 char ssid[] = "YourWiFiName";
 char pass[] = "YourWiFiPassword";
 
-const int sensorPin = 34;</code></pre>
-        </div>
-        <div class="code-col">
-          <div class="code-col-label">setup() and loop()</div>
-          <pre><code>void setup() {
-  Serial.begin(115200);
-  Blynk.begin(auth, ssid, pass);
-}
-
-void loop() {
-  Blynk.run();
-  int sensorValue = analogRead(sensorPin);
-  Serial.print("Sensor reading: ");
-  Serial.println(sensorValue);
-  delay(500);
-}</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 12b : PHASE 2 DETAIL -->
-  <section class="slide">
-    <div class="slide-inner">
-      <span class="badge">Phase 2 of 5</span>
-      <h2>Read a sensor</h2>
-      <p class="lede">Add the sensor reading on its own first, printed to Serial only — get the reading right before sending it anywhere.</p>
-      <div class="note"><b>What's new:</b> <code style="font-size:13px;">sensorPin</code> names GPIO34. <code style="font-size:13px;">analogRead()</code> returns a number from 0 (no light / one end of the potentiometer) to 4095 (bright light / the other end).</div>
-      <div class="result"><b>Expected result:</b> the Serial Monitor prints a new sensor reading twice a second. Covering the LDR — or turning the potentiometer — changes the number.</div>
-      <div class="note"><b>Teacher note:</b> the short <code style="font-size:13px;">delay(500)</code> here is fine for now, but flag it — Phase 3 replaces it with a timer so <code style="font-size:13px;">Blynk.run()</code> is never kept waiting.</div>
-    </div>
-  </section>
-
-  <!-- 13 : PHASE 3 CODE -->
-  <section class="slide code-slide">
-    <div class="slide-inner">
-      <span class="badge">Phase 3 of 5 — Code</span>
-      <h2>Send sensor data to Blynk</h2>
-      <div class="code-grid">
-        <div class="code-col">
-          <div class="code-col-label">Credentials, pins & functions</div>
-          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
-#define BLYNK_TEMPLATE_NAME "E21 Blynk"
-#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
-
-#include &lt;WiFi.h&gt;
-#include &lt;WiFiClient.h&gt;
-#include &lt;BlynkSimpleEsp32.h&gt;
-
-char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "YourWiFiName";
-char pass[] = "YourWiFiPassword";
-
-const int sensorPin = 34;
-BlynkTimer timer;
-
-void sendSensorData() {
-  int sensorValue = analogRead(sensorPin);
-  Blynk.virtualWrite(V2, sensorValue);
-}</code></pre>
-        </div>
-        <div class="code-col">
-          <div class="code-col-label">setup() and loop()</div>
-          <pre><code>void setup() {
-  Serial.begin(115200);
-  Blynk.begin(auth, ssid, pass);
-  timer.setInterval(1000L, sendSensorData);
-}
-
-void loop() {
-  Blynk.run();
-  timer.run();
-}</code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 13b : PHASE 3 DETAIL -->
-  <section class="slide">
-    <div class="slide-inner">
-      <span class="badge">Phase 3 of 5</span>
-      <h2>Send sensor data to Blynk</h2>
-      <p class="lede">Now push that reading up to the Gauge on V2 — on a timer, instead of a blocking delay.</p>
-      <div class="note"><b>What's new:</b> <code style="font-size:13px;">BlynkTimer timer</code> schedules a function to run repeatedly without blocking. <code style="font-size:13px;">timer.setInterval(1000L, sendSensorData)</code> calls <code style="font-size:13px;">sendSensorData()</code> every 1000ms. <code style="font-size:13px;">Blynk.virtualWrite(V2, sensorValue)</code> pushes the number to Virtual Pin V2 — that's the wire straight to your Gauge widget. <code style="font-size:13px;">timer.run()</code> in the loop is what actually checks and fires the timer.</div>
-      <div class="result"><b>Expected result:</b> the Gauge widget on your dashboard updates once a second and tracks the sensor in real time — from anywhere with internet, not just on your desk.</div>
-    </div>
-  </section>
-
-  <!-- 14 : PHASE 4 CODE -->
-  <section class="slide code-slide">
-    <div class="slide-inner">
-      <span class="badge">Phase 4 of 5 — Code</span>
-      <h2>Control the LED from Blynk</h2>
-      <div class="code-grid">
-        <div class="code-col">
-          <div class="code-col-label">Credentials, pins & functions</div>
-          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
-#define BLYNK_TEMPLATE_NAME "E21 Blynk"
-#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
-
-#include &lt;WiFi.h&gt;
-#include &lt;WiFiClient.h&gt;
-#include &lt;BlynkSimpleEsp32.h&gt;
-
-char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "YourWiFiName";
-char pass[] = "YourWiFiPassword";
-
-const int sensorPin = 34;
 const int ledPin = 15;
+const int sensorPin = 34;
 BlynkTimer timer;
 
 BLYNK_WRITE(V0) {
@@ -662,25 +520,198 @@ void loop() {
     </div>
   </section>
 
-  <!-- 14b : PHASE 4 DETAIL -->
+  <!-- 12b : ACTIVITY 1 DETAIL -->
   <section class="slide">
     <div class="slide-inner">
-      <span class="badge">Phase 4 of 5</span>
-      <h2>Control the LED from Blynk</h2>
-      <p class="lede">Add the LED and let the app's Button widget switch it — this is the first time data flows from the app back down to the ESP32.</p>
-      <div class="note"><b>What's new:</b> <code style="font-size:13px;">BLYNK_WRITE(V0)</code> is a special function that Blynk calls automatically whenever the Button on V0 is tapped — you never call it yourself. <code style="font-size:13px;">param.asInt()</code> reads what the app sent (0 or 1), and <code style="font-size:13px;">digitalWrite(ledPin, pinValue)</code> applies it to the real LED.</div>
-      <div class="result"><b>Expected result:</b> tapping the Button widget turns the physical LED on and off, with the Gauge still updating in the background.</div>
+      <span class="badge">Activity 1 of 4</span>
+      <h2>Read &amp; send the sensor</h2>
+      <p class="lede">Wire up the light sensor (or potentiometer) and push its reading up to the Gauge on V2 — on a timer, instead of a blocking delay.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">sensorPin</code> names GPIO34. <code style="font-size:13px;">analogRead()</code> returns a number from 0 (no light / one end of the potentiometer) to 4095 (bright light / the other end). <code style="font-size:13px;">BlynkTimer timer</code> schedules a function to run repeatedly without blocking — <code style="font-size:13px;">timer.setInterval(1000L, sendSensorData)</code> calls <code style="font-size:13px;">sendSensorData()</code> every 1000ms. <code style="font-size:13px;">Blynk.virtualWrite(V2, sensorValue)</code> pushes the number to Virtual Pin V2, and <code style="font-size:13px;">timer.run()</code> in the loop is what actually checks and fires the timer.</div>
+      <div class="note"><b>Debugging tip:</b> if the Gauge doesn't move, add a quick <code style="font-size:13px;">Serial.println(sensorValue)</code> inside <code style="font-size:13px;">sendSensorData()</code> first — confirm the reading itself is changing before suspecting the Blynk connection.</div>
+      <div class="result"><b>Expected result:</b> the Gauge widget on your dashboard updates once a second and tracks the sensor in real time, and the Button still switches the LED.</div>
     </div>
   </section>
 
-  <!-- 15 : FINAL PHASE CODE -->
+  <!-- 13 : ACTIVITY 2 CODE -->
   <section class="slide code-slide">
     <div class="slide-inner">
-      <span class="badge">Final Phase · 5 of 5 — Code</span>
-      <h2>The complete dashboard</h2>
+      <span class="badge">Activity 2 of 4 — Code</span>
+      <h2>Let the sensor drive the LED</h2>
       <div class="code-grid">
         <div class="code-col">
-          <div class="code-col-label">Credentials, pins & functions</div>
+          <div class="code-col-label">Credentials, pins &amp; functions</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+const int ledPin = 15;
+const int sensorPin = 34;
+const int threshold = 2000;
+BlynkTimer timer;
+
+void checkSensor() {
+  int sensorValue = analogRead(sensorPin);
+  Blynk.virtualWrite(V2, sensorValue);
+
+  if (sensorValue < threshold) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, checkSensor);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13b : ACTIVITY 2 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Activity 2 of 4</span>
+      <h2>Let the sensor drive the LED</h2>
+      <p class="lede">A different sketch, on purpose: instead of a person tapping the Button, the ESP32 itself decides when the LED turns on, based on the sensor reading.</p>
+      <div class="note"><b>What's new:</b> there's no <code style="font-size:13px;">BLYNK_WRITE(V0)</code> here at all — the app isn't sending anything down. <code style="font-size:13px;">checkSensor()</code> reads the sensor, reports it to the Gauge, then compares it to <code style="font-size:13px;">threshold</code> and drives <code style="font-size:13px;">ledPin</code> directly with plain <code style="font-size:13px;">digitalWrite()</code>.</div>
+      <div class="result"><b>Expected result:</b> the LED switches on and off by itself as you cover/uncover the sensor (or turn the potentiometer) — no button tap required. The Gauge keeps updating as before.</div>
+      <div class="todo"><b>Students:</b> try a few different values for <code style="font-size:13px;">threshold</code> and watch where the LED flips — this is a good moment to talk about why the Button (app → device) and this (sensor → device) are two different data directions.</div>
+    </div>
+  </section>
+
+  <!-- 14 : ACTIVITY 3 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Activity 3 of 4 — Code</span>
+      <h2>Add an uptime counter</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials &amp; functions</div>
+          <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
+#define BLYNK_TEMPLATE_NAME "E21 Blynk"
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClient.h&gt;
+#include &lt;BlynkSimpleEsp32.h&gt;
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YourWiFiName";
+char pass[] = "YourWiFiPassword";
+
+BlynkTimer timer;
+
+void sendUptime() {
+  Blynk.virtualWrite(V1, millis() / 1000);
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">setup() and loop()</div>
+          <pre><code>void setup() {
+  Serial.begin(115200);
+  Blynk.begin(auth, ssid, pass);
+  timer.setInterval(1000L, sendUptime);
+}
+
+void loop() {
+  Blynk.run();
+  timer.run();
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14b : ACTIVITY 3 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Activity 3 of 4</span>
+      <h2>Add an uptime counter</h2>
+      <p class="lede">No sensor or LED needed for this one — a good quick win if a group finishes early, or a simple standalone example of the timer pattern on its own.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">millis()</code> returns milliseconds since the ESP32 booted; dividing by 1000 gives seconds. <code style="font-size:13px;">sendUptime()</code> pushes that number to Virtual Pin V1 once a second via the same <code style="font-size:13px;">BlynkTimer</code> pattern from Activity 1.</div>
+      <div class="result"><b>Expected result:</b> the Value Display widget on V1 counts up steadily, showing how long the board has been running since its last reset.</div>
+    </div>
+  </section>
+
+  <!-- 14c : ACTIVITY 4 CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Activity 4 of 4 — Code</span>
+      <h2>Track the sensor's min &amp; max</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Pins &amp; variables</div>
+          <pre><code>const int sensorPin = 34;
+
+int minReading = 4095;
+int maxReading = 0;
+
+void setup() {
+  Serial.begin(115200);
+}</code></pre>
+        </div>
+        <div class="code-col">
+          <div class="code-col-label">loop()</div>
+          <pre><code>void loop() {
+  int sensorValue = analogRead(sensorPin);
+
+  if (sensorValue < minReading) minReading = sensorValue;
+  if (sensorValue > maxReading) maxReading = sensorValue;
+
+  Serial.print("Now: ");
+  Serial.print(sensorValue);
+  Serial.print("  Min: ");
+  Serial.print(minReading);
+  Serial.print("  Max: ");
+  Serial.println(maxReading);
+
+  delay(300);
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14d : ACTIVITY 4 DETAIL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <span class="badge">Activity 4 of 4</span>
+      <h2>Track the sensor's min &amp; max</h2>
+      <p class="lede">No LED, no Blynk — pure sensor practice. The ESP32 remembers the lowest and highest reading it's seen since power-on, and reports all three numbers every loop.</p>
+      <div class="note"><b>What's new:</b> <code style="font-size:13px;">minReading</code> and <code style="font-size:13px;">maxReading</code> are declared outside <code style="font-size:13px;">setup()</code>/<code style="font-size:13px;">loop()</code>, so they persist across loop calls instead of resetting each time. Each pass compares the new reading against them and updates whichever record it beats.</div>
+      <div class="result"><b>Expected result:</b> the Serial Monitor prints a running "Now / Min / Max" line. Fully covering the sensor or shining a light on it (or turning the potentiometer to each extreme) should push the min or max further.</div>
+      <div class="todo"><b>Students:</b> physically test both extremes of your sensor so the min/max reflect real limits, not just resting-desk values — then compare numbers with a neighbor using a different sensor.</div>
+    </div>
+  </section>
+
+  <!-- 15 : BONUS COMBINED CODE -->
+  <section class="slide code-slide">
+    <div class="slide-inner">
+      <span class="badge">Bonus — Code</span>
+      <h2>Put it all together</h2>
+      <div class="code-grid">
+        <div class="code-col">
+          <div class="code-col-label">Credentials, pins &amp; functions</div>
           <pre><code>#define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
 #define BLYNK_TEMPLATE_NAME "E21 Blynk"
 #define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
@@ -731,14 +762,14 @@ void loop() {
     </div>
   </section>
 
-  <!-- 15b : FINAL PHASE DETAIL -->
+  <!-- 15b : BONUS COMBINED DETAIL -->
   <section class="slide">
     <div class="slide-inner">
-      <span class="badge">Final Phase · 5 of 5</span>
-      <h2>The complete dashboard</h2>
-      <p class="lede">Add the uptime counter on V1 and every piece from Phases 1–4 is now working together: one control, two live readouts.</p>
-      <div class="note"><b>What's new:</b> <code style="font-size:13px;">sendUptime()</code> writes <code style="font-size:13px;">millis() / 1000</code> — milliseconds since boot, converted to seconds — to V1. It's scheduled on the same timer object as the sensor function, so both run every second without interfering with each other.</div>
-      <div class="result"><b>Expected result:</b> your dashboard shows a live sensor Gauge, a running Uptime counter, and a Button that switches the LED — all working over the internet, not a local network.</div>
+      <span class="badge">Bonus</span>
+      <h2>Put it all together</h2>
+      <p class="lede">This sketch combines Activity 1's sensor Gauge, Activity 3's uptime counter, and last week's manual Button — Button (V0) is a full alternative to Activity 2's auto-threshold logic, not a combination of both.</p>
+      <div class="result"><b>Expected result:</b> your dashboard shows a Button that switches the LED, a live sensor Gauge, and a running Uptime counter — all working over the internet, not a local network.</div>
+      <div class="note">For groups that finish early: try merging in Activity 2's threshold logic as well, and talk through what should happen if the Button and the sensor "disagree" about whether the LED should be on.</div>
     </div>
   </section>
 
@@ -754,6 +785,7 @@ void loop() {
         <div class="card"><h3>Brightness slider</h3><p>Replace the on/off Button with a Slider on V0, and use <code style="font-size:13px;">analogWrite()</code> to fade the LED's brightness instead of switching it.</p></div>
       </div>
       <div class="note">Working with a different sensor this semester instead of an LDR or potentiometer? Swap <code style="font-size:13px;">sensorPin</code> and the reading logic — everything else in the sketch stays the same.</div>
+      <div class="note"><b>Optional stretch idea:</b> a passcode/keypad gate — e.g. a Datastream that only unlocks the LED Button after the right code is entered. It's a bigger jump (needs a new widget and some state logic not covered above), so treat it as a "if there's time" extension rather than a core challenge.</div>
     </div>
   </section>
 
